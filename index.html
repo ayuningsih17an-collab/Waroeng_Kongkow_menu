@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-stone-950 text-stone-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Kafe & Pemesanan WhatsApp</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Plus Jakarta Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        coffee: {
+                            50: '#fdfbf7',
+                            100: '#f7f2e8',
+                            200: '#eee2cd',
+                            300: '#e2cda9',
+                            400: '#d1b07f',
+                            500: '#c2965a',
+                            600: '#b2814b',
+                            700: '#94663e',
+                            800: '#785337',
+                            900: '#61442f',
+                            950: '#2a1a10',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0c0a09;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #292524;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #785337;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased h-full flex flex-col bg-stone-950 text-stone-100 selection:bg-amber-500 selection:text-stone-950 pb-20">
+
+    <!-- TOP HEADER (CUSTOMER VIEW) -->
+    <header class="sticky top-0 z-30 bg-stone-950/90 backdrop-blur-md border-b border-stone-800/80 shadow-2xl">
+        <div class="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between gap-2">
+            <!-- Brand Info -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 via-coffee-600 to-coffee-900 flex items-center justify-center text-white shadow-lg shadow-amber-950/40 border border-amber-400/20">
+                    <i class="fa-solid fa-mug-saucer text-xl text-amber-100"></i>
+                </div>
+                <div>
+                    <h1 id="headerCafeName" class="font-bold text-lg leading-tight text-amber-100 tracking-tight">Kopi Senja Utama</h1>
+                    <p id="headerCafeTagline" class="text-[11px] text-amber-200/60 font-medium">Digital Menu & Ordering</p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center gap-2">
+                <!-- Cart Toggle Button -->
+                <button onclick="toggleCartModal()" class="relative py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-coffee-600 hover:from-amber-500 hover:to-coffee-500 text-stone-950 font-bold transition-all shadow-lg shadow-amber-950/50 flex items-center gap-2 active:scale-95">
+                    <i class="fa-solid fa-bag-shopping text-base"></i>
+                    <span class="text-xs font-extrabold uppercase tracking-wider hidden sm:inline">Pesanan</span>
+                    <span id="cartBadgeCount" class="bg-stone-950 text-amber-400 font-extrabold text-xs px-2 py-0.5 rounded-full border border-amber-500/30 scale-100 transition-transform">0</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SEARCH BAR & CATEGORIES NAV -->
+        <div class="max-w-3xl mx-auto px-4 pb-3.5 pt-1 space-y-3">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-sm"></i>
+                <input type="text" id="searchInput" oninput="renderMenu()" placeholder="Cari espresso, croissant, snack..." class="w-full bg-stone-900/90 border border-stone-800 rounded-xl pl-10 pr-9 py-2.5 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-inner">
+                <button id="clearSearchBtn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white text-xs p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Categories horizontal scroll -->
+            <div id="categoryContainer" class="flex gap-2 overflow-x-auto hide-scrollbar pb-1 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-3xl w-full mx-auto px-4 py-5">
+        <!-- Ambient Banner -->
+        <div class="mb-5 p-4 rounded-2xl bg-gradient-to-r from-coffee-950 via-stone-900 to-coffee-950 border border-amber-500/20 flex items-center justify-between gap-4 shadow-xl relative overflow-hidden">
+            <div class="space-y-1 z-10">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold tracking-wide border border-amber-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                    Order Direct via WA
+                </div>
+                <h2 class="text-sm font-bold text-amber-100">Selamat datang! Silakan atur pesanan Anda.</h2>
+                <p class="text-[11px] text-stone-400">Pesanan dikirim langsung ke kasir kami melalui WhatsApp.</p>
+            </div>
+            <i class="fa-solid fa-mug-hot text-5xl text-amber-500/10 absolute -right-2 -bottom-2 z-0"></i>
+        </div>
+
+        <!-- Menu Section Header -->
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="currentCategoryTitle" class="text-base font-bold text-amber-100 flex items-center gap-2">
+                <span>Semua Menu</span>
+            </h3>
+            <span id="menuCountBadge" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-stone-900 text-stone-400 border border-stone-800">0 item</span>
+        </div>
+
+        <!-- MENU GRID -->
+        <div id="menuGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- Items injected by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyMenuState" class="hidden text-center py-14 px-4">
+            <div class="w-14 h-14 rounded-2xl bg-stone-900 border border-stone-800 flex items-center justify-center mx-auto text-stone-500 text-xl mb-3 shadow-inner">
+                <i class="fa-solid fa-mug-saucer"></i>
+            </div>
+            <h4 class="text-sm font-bold text-stone-300">Menu Tidak Ditemukan</h4>
+            <p class="text-xs text-stone-500 max-w-xs mx-auto mt-1">Coba gunakan kata kunci lain atau pilih kategori menu yang lain.</p>
+        </div>
+    </main>
+
+    <!-- FOOTER WITH DISCREET ADMIN BUTTON -->
+    <footer class="mt-auto bg-stone-950 border-t border-stone-900 py-6 text-center text-xs text-stone-500">
+        <div class="max-w-3xl mx-auto px-4 space-y-3">
+            <p id="footerCafeName" class="font-medium text-stone-400">© Kopi Senja Utama - Digital Menu</p>
+            
+            <!-- Discreet Admin Link -->
+            <div class="pt-2 flex justify-center items-center gap-2">
+                <button onclick="promptAdminAccess()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900/80 hover:bg-stone-900 text-[11px] text-stone-500 hover:text-amber-400 border border-stone-800/80 transition-all">
+                    <i class="fa-solid fa-lock text-[10px]"></i>
+                    <span>Kelola Menu (Owner)</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ITEM DETAIL MODAL -->
+    <div id="itemDetailModal" class="fixed inset-0 z-50 invisible transition-opacity duration-300">
+        <div onclick="closeItemModal()" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+        <div class="relative max-w-sm w-full mx-auto my-auto top-1/2 -translate-y-1/2 bg-stone-900 border border-stone-800 rounded-2xl shadow-2xl overflow-hidden p-0 max-h-[90vh] flex flex-col">
+            <div class="relative h-48 w-full bg-stone-950">
+                <img id="modalItemImage" src="" class="w-full h-full object-cover">
+                <button onclick="closeItemModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-stone-950/80 text-white flex items-center justify-center border border-stone-700">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-3 flex-1 overflow-y-auto">
+                <div class="flex justify-between items-start gap-2">
+                    <h3 id="modalItemTitle" class="font-bold text-base text-amber-100"></h3>
+                    <span id="modalItemPrice" class="font-extrabold text-amber-400 text-base"></span>
+                </div>
+                <p id="modalItemDesc" class="text-xs text-stone-400 leading-relaxed"></p>
+                
+                <div>
+                    <label class="block text-[11px] font-semibold text-stone-300 mb-1">Catatan Khusus Item (Opsional)</label>
+                    <input type="text" id="modalItemNote" placeholder="Contoh: Less ice, extra shot..." class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+            <div class="p-4 border-t border-stone-800 bg-stone-950 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 bg-stone-900 p-1 rounded-xl border border-stone-800">
+                    <button onclick="adjustModalQty(-1)" class="w-8 h-8 rounded-lg bg-stone-800 text-stone-200 flex items-center justify-center font-bold">-</button>
+                    <span id="modalQtyDisplay" class="w-6 text-center text-xs font-bold text-stone-100">1</span>
+                    <button onclick="adjustModalQty(1)" class="w-8 h-8 rounded-lg bg-stone-800 text-stone-200 flex items-center justify-center font-bold">+</button>
+                </div>
+                <button onclick="confirmAddToCartFromModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-coffee-600 text-stone-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Tambah Pesanan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CART MODAL DRAWER -->
+    <div id="cartModal" class="fixed inset-0 z-50 invisible transition-opacity duration-300">
+        <div id="cartBackdrop" onclick="toggleCartModal()" class="absolute inset-0 bg-black/75 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
+
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div id="cartPanel" class="w-screen max-w-md bg-stone-950 border-l border-stone-800/80 shadow-2xl flex flex-col translate-x-full transition-transform duration-300">
+                
+                <!-- Drawer Header -->
+                <div class="p-4 border-b border-stone-800 flex items-center justify-between bg-stone-900/90">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-bag-shopping text-amber-400 text-lg"></i>
+                        <h3 class="font-bold text-sm text-amber-100">Keranjang Pesanan</h3>
+                    </div>
+                    <button onclick="toggleCartModal()" class="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Customer Details Form -->
+                <div class="p-4 bg-stone-900/40 border-b border-stone-800/80 space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-300 mb-1">Nama Pemesan <span class="text-amber-400">*</span></label>
+                        <input type="text" id="customerName" placeholder="Masukkan nama Anda" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-stone-300 mb-1">Tipe Pesanan</label>
+                            <select id="orderType" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                                <option value="Dine-In (Makan di Tempat)">Dine-In (Di Tempat)</option>
+                                <option value="Takeaway (Bawa Pulang)">Takeaway (Bawa Pulang)</option>
+                                <option value="Delivery (Pengiriman)">Delivery (Kirim)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-stone-300 mb-1">No. Meja / Catatan</label>
+                            <input type="text" id="tableOrNote" placeholder="Contoh: Meja 05" class="w-full bg-stone-900 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Items List -->
+                <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-stone-900">
+                    <!-- Dynamic cart list -->
+                </div>
+
+                <!-- Empty Cart View -->
+                <div id="emptyCartView" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-stone-900 flex items-center justify-center text-stone-600 text-xl mb-3 border border-stone-800">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                    </div>
+                    <p class="text-xs font-bold text-stone-400">Keranjang Masih Kosong</p>
+                    <p class="text-[11px] text-stone-600 mt-1 max-w-xs">Pilih menu favorit Anda terlebih dahulu.</p>
+                </div>
+
+                <!-- Footer / Checkout -->
+                <div class="p-4 border-t border-stone-800 bg-stone-900/90 space-y-3">
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-stone-400">
+                            <span>Jumlah Item</span>
+                            <span id="cartTotalItems">0 item</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-stone-800 font-bold text-base text-amber-100">
+                            <span>Total Pesanan</span>
+                            <span id="cartTotalPrice" class="text-amber-400 font-extrabold text-base">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <button onclick="sendOrderToWhatsApp()" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all active:scale-95">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        <span>Kirim Pesanan ke WhatsApp</span>
+                    </button>
+                    <button onclick="clearCart()" class="w-full text-center text-[11px] text-stone-500 hover:text-stone-400 py-1">
+                        Kosongkan Keranjang
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN PROTECTION MODAL -->
+    <div id="pinModal" class="fixed inset-0 z-50 invisible transition-opacity duration-300">
+        <div onclick="closePinModal()" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+        <div class="relative max-w-xs w-full mx-auto my-auto top-1/2 -translate-y-1/2 bg-stone-900 border border-stone-800 rounded-2xl shadow-2xl p-5 text-center space-y-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/20">
+                <i class="fa-solid fa-key text-base"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm text-amber-100">Akses Pengelola Menu</h4>
+                <p class="text-[11px] text-stone-400 mt-0.5">Masukkan PIN untuk mengedit menu (Default PIN: <span class="text-amber-400 font-mono">1234</span>)</p>
+            </div>
+            <input type="password" id="adminPinInput" maxlength="6" placeholder="PIN Admin" class="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-center text-sm tracking-widest text-amber-300 focus:outline-none focus:border-amber-500">
+            <div class="flex gap-2">
+                <button onclick="closePinModal()" class="flex-1 py-2 rounded-xl bg-stone-800 text-stone-300 text-xs">Batal</button>
+                <button onclick="verifyPinAndOpenAdmin()" class="flex-1 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN / EDITABLE MODAL -->
+    <div id="adminModal" class="fixed inset-0 z-50 invisible transition-opacity duration-300">
+        <div onclick="closeAdminModal()" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+
+        <div class="relative max-w-2xl w-full mx-auto my-6 bg-stone-900 border border-stone-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="p-4 border-b border-stone-800 flex items-center justify-between bg-stone-950 rounded-t-2xl">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-amber-400"></i>
+                    <h3 class="font-bold text-sm text-amber-100">Panel Pengelola Menu & WhatsApp</h3>
+                </div>
+                <button onclick="closeAdminModal()" class="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-stone-800">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Tabs Nav -->
+            <div class="flex border-b border-stone-800 bg-stone-900/60 px-4 pt-2 gap-2 text-xs font-semibold overflow-x-auto">
+                <button onclick="switchAdminTab('general')" id="tabBtnGeneral" class="px-3 py-2 rounded-t-lg border-b-2 border-amber-500 text-amber-400">Pengaturan</button>
+                <button onclick="switchAdminTab('items')" id="tabBtnItems" class="px-3 py-2 rounded-t-lg border-b-2 border-transparent text-stone-400">Kelola Menu</button>
+                <button onclick="switchAdminTab('categories')" id="tabBtnCategories" class="px-3 py-2 rounded-t-lg border-b-2 border-transparent text-stone-400">Kategori</button>
+                <button onclick="switchAdminTab('json')" id="tabBtnJson" class="px-3 py-2 rounded-t-lg border-b-2 border-transparent text-stone-400">Impor / Ekspor</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+
+                <!-- TAB: GENERAL -->
+                <div id="tabGeneral" class="space-y-4">
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-amber-400 border-b border-stone-800 pb-2">Profil Kafe & WhatsApp</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-300 mb-1">Nama Kafe</label>
+                            <input type="text" id="settingCafeName" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-300 mb-1">Slogan / Sub-judul</label>
+                            <input type="text" id="settingCafeTagline" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-300 mb-1">Nomor WhatsApp Kasir (Awalan 62)</label>
+                            <input type="text" id="settingWaNumber" placeholder="Contoh: 6281234567890" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-300 mb-1">Mata Uang</label>
+                            <input type="text" id="settingCurrency" placeholder="Rp" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-300 mb-1">PIN Pengelola Baru (Opsional)</label>
+                            <input type="password" id="settingAdminPin" maxlength="6" placeholder="PIN baru" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: MANAGE ITEMS -->
+                <div id="tabItems" class="hidden space-y-5">
+                    <div class="bg-stone-950 p-4 rounded-xl border border-stone-800 space-y-3">
+                        <h4 id="itemFormTitle" class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Tambah Item Baru</h4>
+                        <input type="hidden" id="editingItemId" value="">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-stone-300 mb-1">Nama Item <span class="text-rose-400">*</span></label>
+                                <input type="text" id="itemFormName" class="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-100">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-stone-300 mb-1">Kategori <span class="text-rose-400">*</span></label>
+                                <select id="itemFormCategory" class="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-100">
+                                    <!-- Injected -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-stone-300 mb-1">Harga (Angka) <span class="text-rose-400">*</span></label>
+                                <input type="number" id="itemFormPrice" class="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-100">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-stone-300 mb-1">URL Gambar</label>
+                                <input type="text" id="itemFormImage" placeholder="https://..." class="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-100">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-stone-300 mb-1">Deskripsi Singkat</label>
+                            <textarea id="itemFormDesc" rows="2" class="w-full bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-100"></textarea>
+                        </div>
+
+                        <div class="flex items-center gap-4 pt-1">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-stone-300">
+                                <input type="checkbox" id="itemFormAvailable" checked class="rounded border-stone-700 text-amber-500 focus:ring-amber-500">
+                                Stok Ready
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-xs text-stone-300">
+                                <input type="checkbox" id="itemFormBadge" class="rounded border-stone-700 text-amber-500 focus:ring-amber-500">
+                                Tandai Favorit
+                            </label>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-1">
+                            <button type="button" onclick="resetItemForm()" class="px-3 py-1.5 rounded-lg bg-stone-800 text-stone-300 text-xs">Reset</button>
+                            <button type="button" onclick="saveItemForm()" class="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs">Simpan Item</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="text-[11px] font-bold uppercase tracking-wider text-stone-400">Daftar Menu Saat Ini</h4>
+                        <div id="adminItemsList" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: CATEGORIES -->
+                <div id="tabCategories" class="hidden space-y-4">
+                    <div class="bg-stone-950 p-4 rounded-xl border border-stone-800 space-y-3">
+                        <h4 class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Tambah Kategori Baru</h4>
+                        <div class="flex gap-2">
+                            <input type="text" id="newCatId" placeholder="ID Kategori (cth: dessert)" class="w-1/3 bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-100">
+                            <input type="text" id="newCatName" placeholder="Nama Kategori (cth: Dessert)" class="flex-1 bg-stone-900 border border-stone-800 rounded-lg px-3 py-1.5 text-xs text-stone-100">
+                            <button onclick="addCategory()" class="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs">Tambah</button>
+                        </div>
+                    </div>
+
+                    <div id="adminCategoriesList" class="space-y-2">
+                        <!-- Dynamic categories list -->
+                    </div>
+                </div>
+
+                <!-- TAB: IMPORT / EXPORT -->
+                <div id="tabJson" class="hidden space-y-4">
+                    <p class="text-xs text-stone-400">Simpan cadangan data menu dalam file JSON atau impor data menu baru secara otomatis.</p>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportDataJSON()" class="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold flex items-center gap-2 border border-stone-700">
+                            <i class="fa-solid fa-download"></i> Unduh Data JSON
+                        </button>
+                        <button onclick="document.getElementById('importFileInput').click()" class="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold flex items-center gap-2 border border-stone-700">
+                            <i class="fa-solid fa-upload"></i> Impor Data JSON
+                        </button>
+                        <input type="file" id="importFileInput" onchange="importDataJSON(event)" accept=".json" class="hidden">
+                    </div>
+
+                    <div class="pt-4 border-t border-stone-800">
+                        <button onclick="resetToDefaultData()" class="px-4 py-2 rounded-xl bg-rose-950/80 hover:bg-rose-900 text-rose-200 text-xs font-semibold flex items-center gap-2 border border-rose-800">
+                            <i class="fa-solid fa-rotate-left"></i> Reset ke Menu Bawaan
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer Save -->
+            <div class="p-4 border-t border-stone-800 bg-stone-950 rounded-b-2xl flex justify-between items-center">
+                <span id="adminMessage" class="text-xs text-emerald-400 font-medium opacity-0 transition-opacity">Pengaturan tersimpan!</span>
+                <button onclick="saveGeneralSettings()" class="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-stone-950 font-extrabold text-xs shadow-lg">
+                    Simpan Pengaturan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-stone-900 border border-amber-500/40 text-amber-100 text-xs font-medium px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toastMessage">Item ditambahkan</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const defaultData = {
+            settings: {
+                cafeName: "Kopi Senja Utama",
+                tagline: "Digital Menu & Ordering",
+                waNumber: "6281234567890",
+                currency: "Rp",
+                pin: "1234"
+            },
+            categories: [
+                { id: "all", name: "Semua Menu" },
+                { id: "coffee", name: "Coffee" },
+                { id: "non-coffee", name: "Non-Coffee" },
+                { id: "pastry", name: "Donat & Pastry" },
+                { id: "snack", name: "Camilan" },
+                { id: "main", name: "Makanan Utama" }
+            ],
+            items: [
+                {
+                    id: "item-1",
+                    name: "Espresso Double Shot",
+                    category: "coffee",
+                    price: 20000,
+                    description: "Ekstrak kopi Arabika murni dengan krema tebal dan aroma intense.",
+                    image: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: false
+                },
+                {
+                    id: "item-2",
+                    name: "Cappuccino Soft Warm",
+                    category: "coffee",
+                    price: 28000,
+                    description: "Perpaduan seimbang espresso, steamed milk, dan foam susu yang velvety.",
+                    image: "https://images.unsplash.com/photo-1534778101976-62847782c213?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: true
+                },
+                {
+                    id: "item-3",
+                    name: "Es Kopi Susu Senja",
+                    category: "coffee",
+                    price: 25000,
+                    description: "Signature kopi susu gula aren dengan krimer lembut khas Kafe Senja.",
+                    image: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: true
+                },
+                {
+                    id: "item-4",
+                    name: "Matcha Latte Creamy",
+                    category: "non-coffee",
+                    price: 30000,
+                    description: "Matcha impor Jepang murni dipadu susu segar lembut.",
+                    image: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: true
+                },
+                {
+                    id: "item-5",
+                    name: "Artisan Dark Chocolate",
+                    category: "non-coffee",
+                    price: 28000,
+                    description: "Cokelat hitam pekat kaya rasa disajikan hangat atau dengan es.",
+                    image: "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: false
+                },
+                {
+                    id: "item-6",
+                    name: "Chocolate Glazed Donut",
+                    category: "pastry",
+                    price: 16000,
+                    description: "Donat artisan empuk dengan lelehan cokelat premium & topping kacang.",
+                    image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: true
+                },
+                {
+                    id: "item-7",
+                    name: "French Butter Croissant",
+                    category: "pastry",
+                    price: 24000,
+                    description: "Pastry berlapis renyah di luar, harum mentega di dalam.",
+                    image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: false
+                },
+                {
+                    id: "item-8",
+                    name: "Crispy Cheese Toast",
+                    category: "snack",
+                    price: 25000,
+                    description: "Roti panggang mentega dengan keju mozarella meleleh.",
+                    image: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: false
+                },
+                {
+                    id: "item-9",
+                    name: "Nasi Goreng Rempah Kafe",
+                    category: "main",
+                    price: 38000,
+                    description: "Nasi goreng bumbu rempah khas, telur mata sapi, & kerupuk renyah.",
+                    image: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=500&auto=format&fit=crop&q=80",
+                    available: true,
+                    isBestSeller: true
+                }
+            ]
+        };
+
+        let appData = { ...defaultData };
+        let activeCategory = "all";
+        let cart = []; 
+        let currentModalItemId = null;
+        let currentModalQty = 1;
+
+        window.onload = function() {
+            loadDataFromStorage();
+            applySettingsUI();
+            renderCategories();
+            renderMenu();
+            updateCartBadge();
+        };
+
+        function loadDataFromStorage() {
+            const stored = localStorage.getItem("cafe_menu_app_data");
+            if (stored) {
+                try {
+                    appData = JSON.parse(stored);
+                } catch(e) {
+                    appData = JSON.parse(JSON.stringify(defaultData));
+                }
+            } else {
+                appData = JSON.parse(JSON.stringify(defaultData));
+            }
+        }
+
+        function saveDataToStorage() {
+            localStorage.setItem("cafe_menu_app_data", JSON.stringify(appData));
+        }
+
+        function formatMoney(amount) {
+            const currency = appData.settings.currency || "Rp";
+            return `${currency} ${parseInt(amount || 0).toLocaleString('id-ID')}`;
+        }
+
+        function applySettingsUI() {
+            document.title = `${appData.settings.cafeName} - Digital Menu`;
+            document.getElementById('headerCafeName').innerText = appData.settings.cafeName;
+            document.getElementById('headerCafeTagline').innerText = appData.settings.tagline;
+            document.getElementById('footerCafeName').innerText = `© ${appData.settings.cafeName} - Digital Menu`;
+            
+            document.getElementById('settingCafeName').value = appData.settings.cafeName;
+            document.getElementById('settingCafeTagline').value = appData.settings.tagline;
+            document.getElementById('settingWaNumber').value = appData.settings.waNumber;
+            document.getElementById('settingCurrency').value = appData.settings.currency;
+            document.getElementById('settingAdminPin').value = '';
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = '';
+
+            appData.categories.forEach(cat => {
+                const isActive = activeCategory === cat.id;
+                const btn = document.createElement('button');
+                btn.onclick = () => selectCategory(cat.id);
+                btn.className = `px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                    isActive 
+                        ? 'bg-amber-500 text-stone-950 border-amber-400 font-extrabold shadow-md shadow-amber-950/40' 
+                        : 'bg-stone-900 text-stone-300 border-stone-800 hover:bg-stone-850 hover:text-white'
+                }`;
+                btn.innerText = cat.name;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectCategory(catId) {
+            activeCategory = catId;
+            renderCategories();
+            renderMenu();
+            
+            const catObj = appData.categories.find(c => c.id === catId);
+            document.getElementById('currentCategoryTitle').innerText = catObj ? catObj.name : 'Daftar Menu';
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const grid = document.getElementById('menuGrid');
+            const emptyState = document.getElementById('emptyMenuState');
+            const searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            if(searchKeyword) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+
+            grid.innerHTML = '';
+
+            const filteredItems = appData.items.filter(item => {
+                const matchesCategory = (activeCategory === 'all') || (item.category === activeCategory);
+                const matchesSearch = item.name.toLowerCase().includes(searchKeyword) || 
+                                      (item.description && item.description.toLowerCase().includes(searchKeyword));
+                return matchesCategory && matchesSearch;
+            });
+
+            document.getElementById('menuCountBadge').innerText = `${filteredItems.length} item`;
+
+            if (filteredItems.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-stone-900/80 border border-stone-800/80 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-amber-500/40 transition-all duration-200 group shadow-md";
+                
+                const imgUrl = item.image && item.image.trim() !== '' 
+                    ? item.image 
+                    : `https://placehold.co/400x300/2a1a10/FFFFFF?text=${encodeURIComponent(item.name)}`;
+
+                card.innerHTML = `
+                    <div onclick="openItemModal('${item.id}')" class="cursor-pointer">
+                        <div class="relative h-36 w-full bg-stone-950 overflow-hidden">
+                            <img src="${imgUrl}" 
+                                 alt="${item.name}" 
+                                 onerror="this.onerror=null; this.src='https://placehold.co/400x300/2a1a10/FFFFFF?text=No+Image';" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${!item.available ? 'opacity-30 grayscale' : ''}">
+                            
+                            ${item.isBestSeller ? `
+                                <span class="absolute top-2.5 left-2.5 bg-amber-500 text-stone-950 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md shadow flex items-center gap-1">
+                                    <i class="fa-solid fa-star"></i> Favorit
+                                </span>
+                            ` : ''}
+
+                            ${!item.available ? `
+                                <div class="absolute inset-0 bg-black/70 backdrop-blur-[1px] flex items-center justify-center">
+                                    <span class="bg-rose-950/80 text-rose-300 border border-rose-800 text-[11px] font-bold px-2.5 py-0.5 rounded-lg">Habis</span>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="p-3.5 space-y-1">
+                            <h4 class="font-bold text-stone-100 text-xs leading-tight group-hover:text-amber-200 transition-colors">${item.name}</h4>
+                            <p class="text-[11px] text-stone-400 line-clamp-2 leading-relaxed">${item.description || 'Sajian lezat khas kafe kami.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="px-3.5 pb-3.5 pt-1 flex items-center justify-between border-t border-stone-800/40 mt-auto">
+                        <span class="font-extrabold text-amber-400 text-xs">${formatMoney(item.price)}</span>
+                        
+                        <button onclick="quickAddToCart(event, '${item.id}')" ${!item.available ? 'disabled' : ''} 
+                                class="py-1.5 px-3 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
+                                    item.available 
+                                        ? 'bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-stone-950 border border-amber-500/30 active:scale-95' 
+                                        : 'bg-stone-800 text-stone-600 cursor-not-allowed'
+                                }">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Pesan</span>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // ITEM MODAL LOGIC
+        function openItemModal(itemId) {
+            const item = appData.items.find(i => i.id === itemId);
+            if (!item || !item.available) return;
+
+            currentModalItemId = itemId;
+            currentModalQty = 1;
+
+            document.getElementById('modalItemImage').src = item.image || 'https://placehold.co/400x300';
+            document.getElementById('modalItemTitle').innerText = item.name;
+            document.getElementById('modalItemPrice').innerText = formatMoney(item.price);
+            document.getElementById('modalItemDesc').innerText = item.description || '';
+            document.getElementById('modalItemNote').value = '';
+            document.getElementById('modalQtyDisplay').innerText = '1';
+
+            const modal = document.getElementById('itemDetailModal');
+            modal.classList.remove('invisible');
+        }
+
+        function closeItemModal() {
+            document.getElementById('itemDetailModal').classList.add('invisible');
+        }
+
+        function adjustModalQty(delta) {
+            currentModalQty = Math.max(1, currentModalQty + delta);
+            document.getElementById('modalQtyDisplay').innerText = currentModalQty;
+        }
+
+        function confirmAddToCartFromModal() {
+            if (!currentModalItemId) return;
+            const note = document.getElementById('modalItemNote').value.trim();
+            addToCart(currentModalItemId, currentModalQty, note);
+            closeItemModal();
+        }
+
+        function quickAddToCart(e, itemId) {
+            e.stopPropagation();
+            addToCart(itemId, 1, '');
+        }
+
+        // CART MANAGEMENT
+        function addToCart(itemId, quantity = 1, note = '') {
+            const item = appData.items.find(i => i.id === itemId);
+            if(!item || !item.available) return;
+
+            const existingIndex = cart.findIndex(c => c.id === itemId && c.note === note);
+            if (existingIndex !== -1) {
+                cart[existingIndex].quantity += quantity;
+            } else {
+                cart.push({ id: itemId, quantity, note });
+            }
+
+            updateCartBadge();
+            showToast(`"${item.name}" ditambahkan ke pesanan`);
+        }
+
+        function updateCartQuantity(index, delta) {
+            if (cart[index]) {
+                cart[index].quantity += delta;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+            }
+            updateCartBadge();
+            renderCartDrawer();
+        }
+
+        function clearCart() {
+            cart = [];
+            updateCartBadge();
+            renderCartDrawer();
+        }
+
+        function updateCartBadge() {
+            const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const badge = document.getElementById('cartBadgeCount');
+            badge.innerText = totalCount;
+        }
+
+        function toggleCartModal() {
+            const modal = document.getElementById('cartModal');
+            const backdrop = document.getElementById('cartBackdrop');
+            const panel = document.getElementById('cartPanel');
+
+            if (modal.classList.contains('invisible')) {
+                renderCartDrawer();
+                modal.classList.remove('invisible');
+                setTimeout(() => {
+                    backdrop.classList.remove('opacity-0');
+                    panel.classList.remove('translate-x-full');
+                }, 10);
+            } else {
+                backdrop.classList.add('opacity-0');
+                panel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    modal.classList.add('invisible');
+                }, 300);
+            }
+        }
+
+        function renderCartDrawer() {
+            const listContainer = document.getElementById('cartItemsList');
+            const emptyView = document.getElementById('emptyCartView');
+            const totalItemsEl = document.getElementById('cartTotalItems');
+            const totalPriceEl = document.getElementById('cartTotalPrice');
+
+            listContainer.innerHTML = '';
+
+            if (cart.length === 0) {
+                listContainer.classList.add('hidden');
+                emptyView.classList.remove('hidden');
+                totalItemsEl.innerText = '0 item';
+                totalPriceEl.innerText = formatMoney(0);
+                return;
+            }
+
+            listContainer.classList.remove('hidden');
+            emptyView.classList.add('hidden');
+
+            let grandTotal = 0;
+            let totalItemCount = 0;
+
+            cart.forEach((cartItem, idx) => {
+                const menuItem = appData.items.find(i => i.id === cartItem.id);
+                if (!menuItem) return;
+
+                const itemSubtotal = menuItem.price * cartItem.quantity;
+                grandTotal += itemSubtotal;
+                totalItemCount += cartItem.quantity;
+
+                const div = document.createElement('div');
+                div.className = "pt-3 flex items-start justify-between gap-3";
+                div.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <h5 class="text-xs font-bold text-stone-100 truncate">${menuItem.name}</h5>
+                        <p class="text-[11px] text-stone-400">${formatMoney(menuItem.price)} × ${cartItem.quantity}</p>
+                        ${cartItem.note ? `<p class="text-[10px] text-amber-300 italic">Catatan: "${cartItem.note}"</p>` : ''}
+                        <p class="text-xs font-extrabold text-amber-400 mt-0.5">${formatMoney(itemSubtotal)}</p>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 bg-stone-900 p-1 rounded-xl border border-stone-800">
+                        <button onclick="updateCartQuantity(${idx}, -1)" class="w-6 h-6 rounded-lg bg-stone-800 text-stone-300 flex items-center justify-center text-xs font-bold">-</button>
+                        <span class="w-5 text-center text-xs font-bold text-stone-100">${cartItem.quantity}</span>
+                        <button onclick="updateCartQuantity(${idx}, 1)" class="w-6 h-6 rounded-lg bg-stone-800 text-stone-300 flex items-center justify-center text-xs font-bold">+</button>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
+
+            totalItemsEl.innerText = `${totalItemCount} item`;
+            totalPriceEl.innerText = formatMoney(grandTotal);
+        }
+
+        // WHATSAPP CHECKOUT LOGIC
+        function sendOrderToWhatsApp() {
+            if (cart.length === 0) {
+                alert("Keranjang pesanan Anda masih kosong!");
+                return;
+            }
+
+            const customerName = document.getElementById('customerName').value.trim();
+            if (!customerName) {
+                alert("Harap masukkan Nama Pemesan!");
+                document.getElementById('customerName').focus();
+                return;
+            }
+
+            const orderType = document.getElementById('orderType').value;
+            const tableOrNote = document.getElementById('tableOrNote').value.trim();
+
+            let totalAmount = 0;
+            let message = `Halo *${appData.settings.cafeName}*, saya mau pesan menu berikut:\n\n`;
+            message += `-----------------------------------\n`;
+            message += `👤 *DATA PEMESAN*\n`;
+            message += `• Nama: ${customerName}\n`;
+            message += `• Tipe: ${orderType}\n`;
+            if (tableOrNote) {
+                message += `• No. Meja/Catatan: ${tableOrNote}\n`;
+            }
+            message += `-----------------------------------\n\n`;
+            message += `📋 *DESKRIPSI PESANAN*\n`;
+
+            cart.forEach((cItem, index) => {
+                const mItem = appData.items.find(i => i.id === cItem.id);
+                if (mItem) {
+                    const subtotal = mItem.price * cItem.quantity;
+                    totalAmount += subtotal;
+                    message += `${index + 1}. *${mItem.name}*\n`;
+                    message += `   ${cItem.quantity}x @ ${formatMoney(mItem.price)} = ${formatMoney(subtotal)}\n`;
+                    if (cItem.note) {
+                        message += `   _Catatan: ${cItem.note}_\n`;
+                    }
+                }
+            });
+
+            message += `\n-----------------------------------\n`;
+            message += `💰 *TOTAL PEMBAYARAN: ${formatMoney(totalAmount)}*\n`;
+            message += `-----------------------------------\n\n`;
+            message += `Mohon konfirmasi ketersediaan dan total pembayarannya. Terima kasih!`;
+
+            let cleanNumber = appData.settings.waNumber.replace(/[^0-9]/g, '');
+            if (cleanNumber.startsWith('0')) {
+                cleanNumber = '62' + cleanNumber.slice(1);
+            }
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/${cleanNumber}?text=${encodedMessage}`, '_blank');
+        }
+
+        // ADMIN DISCREET PIN PROTECTION
+        function promptAdminAccess() {
+            document.getElementById('adminPinInput').value = '';
+            document.getElementById('pinModal').classList.remove('invisible');
+        }
+
+        function closePinModal() {
+            document.getElementById('pinModal').classList.add('invisible');
+        }
+
+        function verifyPinAndOpenAdmin() {
+            const inputPin = document.getElementById('adminPinInput').value.trim();
+            const correctPin = appData.settings.pin || "1234";
+
+            if (inputPin === correctPin) {
+                closePinModal();
+                openAdminModal();
+            } else {
+                alert("PIN Salah! Default PIN adalah 1234");
+            }
+        }
+
+        // ADMIN PANEL LOGIC
+        function openAdminModal() {
+            applySettingsUI();
+            renderAdminItemsList();
+            renderAdminCategoriesList();
+            populateCategorySelect();
+            document.getElementById('adminModal').classList.remove('invisible');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('invisible');
+        }
+
+        function switchAdminTab(tabName) {
+            const tabs = ['general', 'items', 'categories', 'json'];
+            tabs.forEach(t => {
+                const tabEl = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const btnEl = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                
+                if (t === tabName) {
+                    tabEl.classList.remove('hidden');
+                    btnEl.className = "px-3 py-2 rounded-t-lg border-b-2 border-amber-500 text-amber-400 font-bold";
+                } else {
+                    tabEl.classList.add('hidden');
+                    btnEl.className = "px-3 py-2 rounded-t-lg border-b-2 border-transparent text-stone-400 font-semibold";
+                }
+            });
+        }
+
+        function saveGeneralSettings() {
+            appData.settings.cafeName = document.getElementById('settingCafeName').value.trim() || defaultData.settings.cafeName;
+            appData.settings.tagline = document.getElementById('settingCafeTagline').value.trim() || defaultData.settings.tagline;
+            appData.settings.waNumber = document.getElementById('settingWaNumber').value.trim() || defaultData.settings.waNumber;
+            appData.settings.currency = document.getElementById('settingCurrency').value.trim() || "Rp";
+
+            const newPin = document.getElementById('settingAdminPin').value.trim();
+            if (newPin) {
+                appData.settings.pin = newPin;
+            }
+
+            saveDataToStorage();
+            applySettingsUI();
+            renderMenu();
+            showAdminMsg("Pengaturan tersimpan!");
+        }
+
+        function showAdminMsg(msg) {
+            const el = document.getElementById('adminMessage');
+            el.innerText = msg;
+            el.classList.remove('opacity-0');
+            setTimeout(() => el.classList.add('opacity-0'), 2000);
+        }
+
+        function populateCategorySelect() {
+            const select = document.getElementById('itemFormCategory');
+            select.innerHTML = '';
+            appData.categories.filter(c => c.id !== 'all').forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = c.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function saveItemForm() {
+            const id = document.getElementById('editingItemId').value;
+            const name = document.getElementById('itemFormName').value.trim();
+            const category = document.getElementById('itemFormCategory').value;
+            const price = parseFloat(document.getElementById('itemFormPrice').value) || 0;
+            const image = document.getElementById('itemFormImage').value.trim();
+            const description = document.getElementById('itemFormDesc').value.trim();
+            const available = document.getElementById('itemFormAvailable').checked;
+            const isBestSeller = document.getElementById('itemFormBadge').checked;
+
+            if (!name) {
+                alert("Nama item harus diisi!");
+                return;
+            }
+
+            if (id) {
+                const index = appData.items.findIndex(i => i.id === id);
+                if (index !== -1) {
+                    appData.items[index] = { id, name, category, price, image, description, available, isBestSeller };
+                }
+            } else {
+                const newItem = {
+                    id: 'item-' + Date.now(),
+                    name,
+                    category,
+                    price,
+                    image,
+                    description,
+                    available,
+                    isBestSeller
+                };
+                appData.items.push(newItem);
+            }
+
+            saveDataToStorage();
+            resetItemForm();
+            renderAdminItemsList();
+            renderMenu();
+            showAdminMsg("Menu berhasil disimpan!");
+        }
+
+        function editItem(itemId) {
+            const item = appData.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('editingItemId').value = item.id;
+            document.getElementById('itemFormName').value = item.name;
+            document.getElementById('itemFormCategory').value = item.category;
+            document.getElementById('itemFormPrice').value = item.price;
+            document.getElementById('itemFormImage').value = item.image || '';
+            document.getElementById('itemFormDesc').value = item.description || '';
+            document.getElementById('itemFormAvailable').checked = item.available;
+            document.getElementById('itemFormBadge').checked = !!item.isBestSeller;
+
+            document.getElementById('itemFormTitle').innerText = "Edit Item Menu";
+        }
+
+        function deleteItem(itemId) {
+            if (confirm("Hapus item menu ini?")) {
+                appData.items = appData.items.filter(i => i.id !== itemId);
+                saveDataToStorage();
+                renderAdminItemsList();
+                renderMenu();
+                showAdminMsg("Item dihapus.");
+            }
+        }
+
+        function resetItemForm() {
+            document.getElementById('editingItemId').value = '';
+            document.getElementById('itemFormName').value = '';
+            document.getElementById('itemFormPrice').value = '';
+            document.getElementById('itemFormImage').value = '';
+            document.getElementById('itemFormDesc').value = '';
+            document.getElementById('itemFormAvailable').checked = true;
+            document.getElementById('itemFormBadge').checked = false;
+            document.getElementById('itemFormTitle').innerText = "Tambah Item Baru";
+        }
+
+        function renderAdminItemsList() {
+            const container = document.getElementById('adminItemsList');
+            container.innerHTML = '';
+
+            appData.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-2 rounded-xl bg-stone-950 border border-stone-800 text-xs";
+                div.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <img src="${item.image || 'https://placehold.co/100x100'}" class="w-8 h-8 rounded-lg object-cover bg-stone-900" onerror="this.src='https://placehold.co/100x100'">
+                        <div>
+                            <p class="font-bold text-stone-200">${item.name}</p>
+                            <p class="text-amber-400 text-[11px]">${formatMoney(item.price)} ${!item.available ? '<span class="text-rose-400">(Habis)</span>' : ''}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="editItem('${item.id}')" class="p-1.5 rounded-lg bg-stone-800 text-amber-300">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="deleteItem('${item.id}')" class="p-1.5 rounded-lg bg-stone-800 text-rose-400">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addCategory() {
+            const catId = document.getElementById('newCatId').value.trim().toLowerCase().replace(/\s+/g, '-');
+            const catName = document.getElementById('newCatName').value.trim();
+
+            if (!catId || !catName) {
+                alert("ID dan Nama Kategori wajib diisi!");
+                return;
+            }
+
+            if (appData.categories.some(c => c.id === catId)) {
+                alert("ID Kategori sudah ada!");
+                return;
+            }
+
+            appData.categories.push({ id: catId, name: catName });
+            saveDataToStorage();
+            
+            document.getElementById('newCatId').value = '';
+            document.getElementById('newCatName').value = '';
+            
+            renderCategories();
+            renderAdminCategoriesList();
+            populateCategorySelect();
+            showAdminMsg("Kategori ditambahkan!");
+        }
+
+        function deleteCategory(catId) {
+            if (catId === 'all') return;
+
+            if (confirm(`Hapus kategori "${catId}"?`)) {
+                appData.categories = appData.categories.filter(c => c.id !== catId);
+                saveDataToStorage();
+                renderCategories();
+                renderAdminCategoriesList();
+                populateCategorySelect();
+                showAdminMsg("Kategori dihapus.");
+            }
+        }
+
+        function renderAdminCategoriesList() {
+            const container = document.getElementById('adminCategoriesList');
+            container.innerHTML = '';
+
+            appData.categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-2 rounded-lg bg-stone-950 border border-stone-800 text-xs";
+                div.innerHTML = `
+                    <span class="font-semibold text-stone-300">${cat.name} <code class="text-[10px] text-stone-500">(${cat.id})</code></span>
+                    ${cat.id !== 'all' ? `
+                        <button onclick="deleteCategory('${cat.id}')" class="p-1 text-rose-400 hover:bg-stone-800 rounded">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    ` : '<span class="text-[10px] text-stone-600">Bawaan</span>'}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `data_menu_kafe_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.settings && imported.categories && imported.items) {
+                        appData = imported;
+                        saveDataToStorage();
+                        applySettingsUI();
+                        renderCategories();
+                        renderMenu();
+                        renderAdminItemsList();
+                        renderAdminCategoriesList();
+                        showAdminMsg("Data berhasil diimpor!");
+                    } else {
+                        alert("Format JSON tidak valid!");
+                    }
+                } catch (err) {
+                    alert("Gagal membaca file JSON!");
+                }
+            };
+            if(event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        function resetToDefaultData() {
+            if (confirm("Reset data menu kembali ke awal? Perubahan Anda akan hilang.")) {
+                appData = JSON.parse(JSON.stringify(defaultData));
+                saveDataToStorage();
+                applySettingsUI();
+                renderCategories();
+                renderMenu();
+                renderAdminItemsList();
+                renderAdminCategoriesList();
+                showAdminMsg("Data berhasil di-reset.");
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
